@@ -15,8 +15,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
+// @contact.name TimeGladiator
+// @contact.url http://www.timegladiator.io/support
 // @contact.email support@swagger.io
 
 // @license.name Apache 2.0
@@ -60,10 +60,10 @@ func main() {
 	}); err != nil {
 		log.Fatalf("Sentry initialization failed: %v\n", err)
 	}
-	docs.SwaggerInfo.Title = "Swagger Example API"
-	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Title = "TimeGladiator API"
+	docs.SwaggerInfo.Description = "API of TimeGladiator service"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "petstore.swagger.io"
+	docs.SwaggerInfo.Host = "localhost"
 	docs.SwaggerInfo.BasePath = "/v2"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
@@ -77,6 +77,8 @@ func main() {
 			eg.GET("/helloworld", Helloworld)
 		}
 	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////Metrics//////////////////////////////////////
 	// get global Monitor object
 	metrics := ginmetrics.GetMonitor()
 	// +optional set metric path, default /debug/metrics
@@ -89,6 +91,7 @@ func main() {
 	// set middleware for gin
 	metrics.UseWithoutExposingEndpoint(app)
 	metrics.Expose(metricRouter)
+	/////////////////////////////////////////////////////////////////////////////////////////////////
 	app.Use(sentrygin.New(sentrygin.Options{
 		Repanic: true,
 	}))
