@@ -1,4 +1,4 @@
-module app
+module github.com/buker/go-app
 
 go 1.16
 

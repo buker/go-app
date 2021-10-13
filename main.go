@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"./docs"
+	"github.com/buker/go-app/docs"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
@@ -29,7 +29,9 @@ func gettime(c *gin.Context) {
 	c.Writer.Write([]byte(datetime))
 	log.Info("Time requested")
 }
-
+func Helloworld(g *gin.Context) {
+	g.JSON(http.StatusOK, "helloworld")
+}
 func main() {
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn: "https://a67153b6c1214429846bd148ec2e5be5@o380765.ingest.sentry.io/6004421",
@@ -55,20 +57,14 @@ func main() {
 
 	app := gin.Default()
 	metricRouter := gin.Default()
-	c := controller.NewController()
+	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := app.Group("/api/v1")
 	{
-		accounts := v1.Group("/accounts")
+		eg := v1.Group("/example")
 		{
-			accounts.GET(":id", c.ShowAccount)
-			accounts.GET("", c.ListAccounts)
-			accounts.POST("", c.AddAccount)
-			accounts.DELETE(":id", c.DeleteAccount)
-			accounts.PATCH(":id", c.UpdateAccount)
-			accounts.POST(":id/images", c.UploadAccountImage)
+			eg.GET("/helloworld", Helloworld)
 		}
 	}
-
 	// get global Monitor object
 	metrics := ginmetrics.GetMonitor()
 	// +optional set metric path, default /debug/metrics
