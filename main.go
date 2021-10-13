@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -24,9 +23,20 @@ import (
 
 // @termsOfService http://swagger.io/terms/
 
-func gettime(c *gin.Context) {
-	datetime := fmt.Sprintln(time.Now())
-	c.Writer.Write([]byte(datetime))
+// @BasePath /api/v1
+
+// PingExample godoc
+// @Summary Show current date and time
+// @Schemes
+// @Description Show date and time
+// @Tags example
+// @Accept json
+// @Produce json
+// @Success 200 {string} Helloworld
+// @Router /example/time [get]
+func gettime(g *gin.Context) {
+	datetime := time.Now()
+	g.JSON(http.StatusOK, datetime)
 	log.Info("Time requested")
 }
 
@@ -44,7 +54,24 @@ func gettime(c *gin.Context) {
 func Helloworld(g *gin.Context) {
 	g.JSON(http.StatusOK, "helloworld")
 }
+
+func Pruduct(g *gin.Context) {
+	g.JSON(http.StatusOK, map[string]string{"productId": g.Param("id")})
+}
 func main() {
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////Sentry////////////////////////////////////////////
+	app := gin.Default()
+
+	app.Use(sentrygin.New(sentrygin.Options{
+		Repanic: true,
+	}))
+	app.Use(func(ctx *gin.Context) {
+		if hub := sentrygin.GetHubFromContext(ctx); hub != nil {
+			hub.Scope().SetTag("someRandomTag", "maybeYouNeedIt")
+		}
+		ctx.Next()
+	})
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn: "https://a67153b6c1214429846bd148ec2e5be5@o380765.ingest.sentry.io/6004421",
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -54,31 +81,38 @@ func main() {
 					log.Info("Sentry request: %v", req)
 				}
 			}
-
 			return event
 		},
 	}); err != nil {
 		log.Fatalf("Sentry initialization failed: %v\n", err)
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////Swagger//////////////////////////////////////
 	docs.SwaggerInfo.Title = "TimeGladiator API"
 	docs.SwaggerInfo.Description = "API of TimeGladiator service"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost"
+	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/v2"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-
-	app := gin.Default()
-	metricRouter := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := app.Group("/api/v1")
 	{
-		eg := v1.Group("/example")
+		eg := v1.Group("/main")
 		{
 			eg.GET("/helloworld", Helloworld)
 		}
+		{
+			eg.GET("/time", gettime)
+		}
+		{
+			eg.GET("/product/:id")
+		}
 	}
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////Metrics//////////////////////////////////////
+	metricRouter := gin.Default()
 	// get global Monitor object
 	metrics := ginmetrics.GetMonitor()
 	// +optional set metric path, default /debug/metrics
@@ -91,16 +125,9 @@ func main() {
 	// set middleware for gin
 	metrics.UseWithoutExposingEndpoint(app)
 	metrics.Expose(metricRouter)
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	app.Use(sentrygin.New(sentrygin.Options{
-		Repanic: true,
-	}))
-	app.Use(func(ctx *gin.Context) {
-		if hub := sentrygin.GetHubFromContext(ctx); hub != nil {
-			hub.Scope().SetTag("someRandomTag", "maybeYouNeedIt")
-		}
-		ctx.Next()
-	})
+	///////////////////////Routes//////////////////////////////////////
 
 	app.GET("/", func(ctx *gin.Context) {
 		if hub := sentrygin.GetHubFromContext(ctx); hub != nil {
