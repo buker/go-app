@@ -19,7 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2 // indirect
 	github.com/swaggo/gin-swagger v1.3.2 // indirect
-	github.com/swaggo/swag v1.7.3 // indirect
+	github.com/swaggo/swag v1.7.3
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/weaveworks/common v0.0.0-20210913144402-035033b78a78 // indirect
 	gitlab.com/msvechla/mux-prometheus v0.0.2 // indirect
