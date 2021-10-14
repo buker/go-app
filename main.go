@@ -7,6 +7,8 @@ import (
 	"github.com/buker/go-app/docs"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
 	log "github.com/sirupsen/logrus"
@@ -59,7 +61,8 @@ func main() {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////Sentry////////////////////////////////////////////
 	app := gin.Default()
-
+	store, _ := redis.NewStore(10, "tcp", "redis:6379", "", []byte("secret"))
+	app.Use(sessions.Sessions("mysession", store))
 	app.Use(sentrygin.New(sentrygin.Options{
 		Repanic: true,
 	}))
@@ -137,6 +140,20 @@ func main() {
 	})
 	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	app.GET("/incr", func(c *gin.Context) {
+		session := sessions.Default(c)
+		var count int
+		v := session.Get("count")
+		if v == nil {
+			count = 0
+		} else {
+			count = v.(int)
+			count++
+		}
+		session.Set("count", count)
+		session.Save()
+		c.JSON(200, gin.H{"count": count})
+	})
 	log.Info("Starting server on port 8080")
 	go func() {
 		_ = metricRouter.Run(":8081")
