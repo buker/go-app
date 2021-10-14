@@ -28,7 +28,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: do ping
+      description: Show date and time
       produces:
       - application/json
       responses:
@@ -36,7 +36,7 @@ paths:
           description: OK
           schema:
             type: string
-      summary: ping example
+      summary: Show current date and time
       tags:
       - example
 swagger: "2.0"

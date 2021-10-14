@@ -55,9 +55,6 @@ func Helloworld(g *gin.Context) {
 	g.JSON(http.StatusOK, "helloworld")
 }
 
-func Pruduct(g *gin.Context) {
-	g.JSON(http.StatusOK, map[string]string{"productId": g.Param("id")})
-}
 func main() {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////Sentry////////////////////////////////////////////
@@ -138,21 +135,6 @@ func main() {
 		}
 		ctx.Status(http.StatusOK)
 	})
-	app.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
-	app.GET("/foo", func(ctx *gin.Context) {
-		// sentrygin handler will catch it just fine. Also, because we attached "someRandomTag"
-		// in the middleware before, it will be sent through as well
-		panic("y tho")
-	})
-
-	app.GET("/product/:id", func(ctx *gin.Context) {
-		ctx.JSON(200, map[string]string{
-			"productId": ctx.Param("id"),
-		})
-	})
-	app.GET("/time", gettime)
 	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	log.Info("Starting server on port 8080")

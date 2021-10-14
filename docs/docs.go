@@ -57,7 +57,7 @@ var doc = `{
         },
         "/example/time": {
             "get": {
-                "description": "do ping",
+                "description": "Show date and time",
                 "consumes": [
                     "application/json"
                 ],
@@ -67,7 +67,7 @@ var doc = `{
                 "tags": [
                     "example"
                 ],
-                "summary": "ping example",
+                "summary": "Show current date and time",
                 "responses": {
                     "200": {
                         "description": "OK",
