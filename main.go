@@ -57,6 +57,70 @@ func Helloworld(g *gin.Context) {
 	g.JSON(http.StatusOK, "helloworld")
 }
 
+func handleGetRecords(c *gin.Context) {
+	var loadedRecords, err = GetAllRecords()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"msg": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"records": loadedRecords})
+}
+
+func handleGetRecord(c *gin.Context) {
+	var record Record
+	if err := c.BindUri(&record); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		return
+	}
+	var loadedRecord, err = GetRecordByID(record.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"msg": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ID": loadedRecord.ID, "Body": loadedRecord.Body})
+}
+
+// @BasePath /api/v1
+
+// PingExample godoc
+// @Summary Create Record
+// @Schemes
+// @Description Save record in DB
+// @Tags main
+// @Accept json
+// @Produce json
+// @Success 200 {json} main
+// @Router /main/record [put]
+func handleCreateRecord(c *gin.Context) {
+	var record Record
+	if err := c.ShouldBindJSON(&record); err != nil {
+		log.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		return
+	}
+	id, err := Create(&record)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"id": id})
+}
+
+func handleUpdateRecord(c *gin.Context) {
+	var record Record
+	if err := c.ShouldBindJSON(&record); err != nil {
+		log.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		return
+	}
+	savedRecord, err := Update(&record)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"record": savedRecord})
+}
+
 func main() {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////Sentry////////////////////////////////////////////
@@ -106,7 +170,7 @@ func main() {
 			eg.GET("/time", gettime)
 		}
 		{
-			eg.GET("/product/:id")
+			eg.PUT("/record/", handleCreateRecord)
 		}
 	}
 
