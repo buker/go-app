@@ -95,13 +95,26 @@ func handleGetRecord(c *gin.Context) {
 func handleCreateRecord(c *gin.Context) {
 	var record Record
 	if err := c.ShouldBindJSON(&record); err != nil {
-		log.Print(err)
+		if hub := sentrygin.GetHubFromContext(c); hub != nil {
+			hub.WithScope(func(scope *sentry.Scope) {
+				scope.SetExtra("wrongJson", "jsonIssue")
+				hub.CaptureException(err)
+			})
+		}
+		log.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
 		return
 	}
 	id, err := Create(&record)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"msg": err})
+		if hub := sentrygin.GetHubFromContext(c); hub != nil {
+			hub.WithScope(func(scope *sentry.Scope) {
+				scope.SetExtra("wrongJson", "jsonIssue")
+				hub.CaptureException(err)
+			})
+		}
+		log.Error(err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"id": id})
@@ -110,12 +123,25 @@ func handleCreateRecord(c *gin.Context) {
 func handleUpdateRecord(c *gin.Context) {
 	var record Record
 	if err := c.ShouldBindJSON(&record); err != nil {
-		log.Print(err)
+		if hub := sentrygin.GetHubFromContext(c); hub != nil {
+			hub.WithScope(func(scope *sentry.Scope) {
+				scope.SetExtra("wrongJson", "jsonIssue")
+				hub.CaptureException(err)
+			})
+		}
+		log.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
 		return
 	}
 	savedRecord, err := Update(&record)
 	if err != nil {
+		if hub := sentrygin.GetHubFromContext(c); hub != nil {
+			hub.WithScope(func(scope *sentry.Scope) {
+				scope.SetExtra("wrongJson", "jsonIssue")
+				hub.CaptureException(err)
+			})
+		}
+		log.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"msg": err})
 		return
 	}
@@ -126,9 +152,6 @@ func main() {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////Sentry////////////////////////////////////////////
 	app := gin.Default()
-	app.Use(gzip.Gzip(gzip.BestSpeed))
-	store, _ := redis.NewStore(10, "tcp", "redis:6379", "", []byte("secret"))
-	app.Use(sessions.Sessions("mysession", store))
 	app.Use(sentrygin.New(sentrygin.Options{
 		Repanic: true,
 	}))
@@ -152,6 +175,9 @@ func main() {
 	}); err != nil {
 		log.Fatalf("Sentry initialization failed: %v\n", err)
 	}
+	app.Use(gzip.Gzip(gzip.BestSpeed))
+	store, _ := redis.NewStore(10, "tcp", "redis:6379", "", []byte("secret"))
+	app.Use(sessions.Sessions("mysession", store))
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////Swagger//////////////////////////////////////
@@ -164,18 +190,18 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := app.Group("/api/v1")
 	{
-		eg := v1.Group("/main")
+		main := v1.Group("/main")
 		{
-			eg.GET("/helloworld", Helloworld)
+			main.GET("/helloworld", Helloworld)
 		}
 		{
-			eg.GET("/time", gettime)
+			main.GET("/time", gettime)
 		}
 		{
-			eg.PUT("/records/", handleCreateRecord)
+			main.PUT("/records/", handleCreateRecord)
 		}
 		{
-			eg.GET("/records/", handleGetRecords)
+			main.GET("/records/", handleGetRecords)
 		}
 	}
 
