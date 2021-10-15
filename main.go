@@ -7,6 +7,7 @@ import (
 	"github.com/buker/go-app/docs"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -125,6 +126,7 @@ func main() {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////Sentry////////////////////////////////////////////
 	app := gin.Default()
+	app.Use(gzip.Gzip(gzip.BestSpeed))
 	store, _ := redis.NewStore(10, "tcp", "redis:6379", "", []byte("secret"))
 	app.Use(sessions.Sessions("mysession", store))
 	app.Use(sentrygin.New(sentrygin.Options{
@@ -170,7 +172,10 @@ func main() {
 			eg.GET("/time", gettime)
 		}
 		{
-			eg.PUT("/record/", handleCreateRecord)
+			eg.PUT("/records/", handleCreateRecord)
+		}
+		{
+			eg.GET("/records/", handleGetRecords)
 		}
 	}
 
