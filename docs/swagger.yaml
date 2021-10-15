@@ -39,4 +39,19 @@ paths:
       summary: Show current date and time
       tags:
       - example
+  /main/record:
+    put:
+      consumes:
+      - application/json
+      description: Save record in DB
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: json
+      summary: Create Record
+      tags:
+      - main
 swagger: "2.0"

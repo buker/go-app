@@ -82,7 +82,7 @@ func handleGetRecord(c *gin.Context) {
 
 // @BasePath /api/v1
 
-// PingExample godoc
+// CreateRecord godoc
 // @Summary Create Record
 // @Schemes
 // @Description Save record in DB

@@ -77,6 +77,29 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/main/record": {
+            "put": {
+                "description": "Save record in DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "main"
+                ],
+                "summary": "Create Record",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "json"
+                        }
+                    }
+                }
+            }
         }
     }
 }`
